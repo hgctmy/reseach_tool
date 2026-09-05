@@ -7,7 +7,7 @@ on:
         description: "フィードのソート指定"
         required: false
         type: choice
-        default: "Hot"
+        default: "ForYou"
         options:
           - "Hot"
           - "Comments"
@@ -31,7 +31,7 @@ on:
       limit:
         description: "取得件数"
         required: false
-        default: "8"
+        default: "5"
       full_text:
         description: "ONにするとPDF直リンク（本文まで読み込む）にする。OFFなら要旨ページ"
         required: false
@@ -61,7 +61,7 @@ jobs:
         env:
           ALPHAXIV_API_KEY: ${{ secrets.ALPHAXIV_API_KEY }}
         run: |
-          args=(--sort "${{ github.event.inputs.sort || 'Hot' }}" --interval "${{ github.event.inputs.interval || '7 Days' }}" --limit "${{ github.event.inputs.limit || '8' }}")
+          args=(--sort "${{ github.event.inputs.sort || 'ForYou' }}" --interval "${{ github.event.inputs.interval || '7 Days' }}" --limit "${{ github.event.inputs.limit || '5' }}")
           if [ "${{ github.event.inputs.full_text }}" = "true" ]; then
             args+=(--full-text)
           fi
