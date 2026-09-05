@@ -15,8 +15,9 @@ NotebookLM）を組み合わせる方が手軽で保守も不要という結論�
 pip install -r requirements.txt
 ```
 
-APIキーは無くても`--sort hot`（公開フィード）は動く。自分のアカウント
-向けのレコメンドを試したい場合は、alphaxiv.orgのSettings > API Keysで発行した
+APIキーは無くても`--sort Hot`（公開フィード）は動く。自分のアカウント
+向けのレコメンド（`--sort Recommended`または`--sort ForYou`。要ログイン状態
+の可能性が高い）を試したい場合は、alphaxiv.orgのSettings > API Keysで発行した
 キーを設定する:
 
 ```bash
@@ -29,7 +30,7 @@ export ALPHAXIV_API_KEY="axv1_..."
 
 **PCの場合:**
 ```bash
-python scripts/daily_digest.py --sort hot --limit 8
+python scripts/daily_digest.py --sort Hot --limit 8
 ```
 `data/daily/YYYY-MM-DD.txt` にarXiv URLの一覧が書き出される
 （標準エラー出力にタイトル付きの一覧も表示されるので中身を確認できる）。
@@ -77,9 +78,12 @@ python scripts/daily_digest.py --sort hot --limit 8
 
 ## メモ
 
-- `--sort`に指定できる値は `hot` / `likes` / `github` / `twitter` /
-  `most-stars` / `most-twitter-likes` のいずれか。それ以外の値（`trending`等）
-  は400エラーになる。
+- `--sort`に指定できる値は `Hot` / `Comments` / `Views` / `Likes` / `GitHub` /
+  `Recommended` / `ForYou` / `Recent` のいずれか（実際にAPIが返したバリデー
+  ションエラーから判明した正式なenum値）。`Recommended`と`ForYou`はおそらく
+  ログイン（`ALPHAXIV_API_KEY`）が前提のパーソナライズされたフィード。
+- `--interval`（ランキング集計の対象期間）は `3 Days` / `7 Days` / `30 Days` /
+  `90 Days` / `All time` のいずれか。
 - 出力するURLはデフォルトで`arxiv.org/abs/`（要旨のみ）。デイリーニュース的に
   サッと聞き流す用途なら要旨で十分な上、件数を増やしてもNotebookLMの
   「per-source sampling」（ソースが多いと各ソースから読む量が間引かれる）の

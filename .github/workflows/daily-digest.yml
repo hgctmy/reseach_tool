@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       sort:
-        description: "フィードのソート指定 (hot/likes/github/twitter/most-stars/most-twitter-likes)"
+        description: "フィードのソート指定 (Hot/Comments/Views/Likes/GitHub/Recommended/ForYou/Recent)"
         required: false
-        default: "hot"
+        default: "Hot"
+      interval:
+        description: "ランキング集計の対象期間 (3 Days/7 Days/30 Days/90 Days/All time)"
+        required: false
+        default: "7 Days"
       limit:
         description: "取得件数"
         required: false
@@ -39,7 +43,7 @@ jobs:
         env:
           ALPHAXIV_API_KEY: ${{ secrets.ALPHAXIV_API_KEY }}
         run: |
-          args=(--sort "${{ github.event.inputs.sort || 'hot' }}" --limit "${{ github.event.inputs.limit || '8' }}")
+          args=(--sort "${{ github.event.inputs.sort || 'Hot' }}" --interval "${{ github.event.inputs.interval || '7 Days' }}" --limit "${{ github.event.inputs.limit || '8' }}")
           if [ "${{ github.event.inputs.full_text }}" = "true" ]; then
             args+=(--full-text)
           fi

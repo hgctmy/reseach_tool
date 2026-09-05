@@ -9,9 +9,9 @@ URLをまとめて貼り付けられる（1件ずつ登録する必要がない�
 
 使い方:
     python scripts/daily_digest.py
-    python scripts/daily_digest.py --sort hot --limit 8
+    python scripts/daily_digest.py --sort Hot --limit 8
     python scripts/daily_digest.py --full-text   # 要旨ではなくPDF本文まで読ませたい場合
-    ALPHAXIV_API_KEY=axv1_... python scripts/daily_digest.py --sort likes
+    ALPHAXIV_API_KEY=axv1_... python scripts/daily_digest.py --sort ForYou
 
 デフォルトはarxiv.org/abs/（要旨ページ）。デイリーニュース的にサッと聞き流す
 用途なら要旨だけで十分な上、件数を増やしてもNotebookLMの「per-source sampling」
@@ -19,10 +19,12 @@ URLをまとめて貼り付けられる（1件ずつ登録する必要がない�
 1本1本を深掘りしたい場合は`--full-text`でPDF直リンク（本文まで読み込まれる）
 に切り替えられる。
 
---sortに指定できる値は hot / likes / github / twitter / most-stars /
-most-twitter-likes のいずれか（alphaXiv側の定義に基づく。trendingのような
-値は存在せず400エラーになる）。ALPHAXIV_API_KEYを設定すると、対応していれば
-自分のアカウント向けの結果が返る可能性がある（未設定でも動く）。
+--sortに指定できる値は Hot / Comments / Views / Likes / GitHub / Recommended /
+ForYou / Recent のいずれか（実際にAPIが返したバリデーションエラーから判明した
+正式なenum値）。RecommendedとForYouはおそらくログイン（ALPHAXIV_API_KEY）が
+前提のパーソナライズされたフィード。
+--intervalは 3 Days / 7 Days / 30 Days / 90 Days / All time のいずれか
+（ランキング集計の対象期間）。
 
 出力:
     - 標準エラー出力にタイトル付き一覧（内容の確認用）
@@ -41,10 +43,12 @@ import requests
 
 API_BASE = os.environ.get("ALPHAXIV_BASE_URL", "https://api.alphaxiv.org")
 OUT_DIR = Path(__file__).resolve().parent.parent / "data" / "daily"
-VALID_SORTS = ("hot", "likes", "github", "twitter", "most-stars", "most-twitter-likes")
+# 実際のAPIバリデーションエラーで判明した正式なenum値
+VALID_SORTS = ("Hot", "Comments", "Views", "Likes", "GitHub", "Recommended", "ForYou", "Recent")
+VALID_INTERVALS = ("3 Days", "7 Days", "30 Days", "90 Days", "All time")
 
 
-def fetch_feed(sort: str, limit: int) -> list[dict]:
+def fetch_feed(sort: str, page_size: int, interval: str, page_num: int = 1) -> list[dict]:
     headers = {"Accept": "application/json"}
     api_key = os.environ.get("ALPHAXIV_API_KEY")
     if api_key:
@@ -52,7 +56,12 @@ def fetch_feed(sort: str, limit: int) -> list[dict]:
     resp = requests.get(
         f"{API_BASE}/papers/v3/feed",
         headers=headers,
-        params={"sort": sort, "limit": limit},
+        params={
+            "sort": sort,
+            "interval": interval,
+            "pageNum": str(page_num),
+            "pageSize": str(page_size),
+        },
         timeout=30,
     )
     if not resp.ok:
@@ -94,9 +103,15 @@ def main() -> None:
     )
     parser.add_argument(
         "--sort",
-        default="hot",
+        default="Hot",
         choices=VALID_SORTS,
         help="フィードのソート指定",
+    )
+    parser.add_argument(
+        "--interval",
+        default="7 Days",
+        choices=VALID_INTERVALS,
+        help="ランキング集計の対象期間",
     )
     parser.add_argument("--limit", type=int, default=8, help="取得件数")
     parser.add_argument(
@@ -109,7 +124,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    cards = fetch_feed(args.sort, args.limit)
+    cards = fetch_feed(args.sort, args.limit, args.interval)
     entries = [entry for card in cards if (entry := card_to_entry(card, args.full_text))]
     if not entries:
         print(
