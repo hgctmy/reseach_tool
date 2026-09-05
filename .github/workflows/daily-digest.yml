@@ -4,21 +4,39 @@ on:
   workflow_dispatch:
     inputs:
       sort:
-        description: "フィードのソート指定 (Hot/Comments/Views/Likes/GitHub/Recommended/ForYou/Recent)"
+        description: "フィードのソート指定"
         required: false
+        type: choice
         default: "Hot"
+        options:
+          - "Hot"
+          - "Comments"
+          - "Views"
+          - "Likes"
+          - "GitHub"
+          - "Recommended"
+          - "ForYou"
+          - "Recent"
       interval:
-        description: "ランキング集計の対象期間 (3 Days/7 Days/30 Days/90 Days/All time)"
+        description: "ランキング集計の対象期間"
         required: false
+        type: choice
         default: "7 Days"
+        options:
+          - "3 Days"
+          - "7 Days"
+          - "30 Days"
+          - "90 Days"
+          - "All time"
       limit:
         description: "取得件数"
         required: false
         default: "8"
       full_text:
-        description: "trueにするとPDF直リンク（本文まで読み込む）にする。falseなら要旨ページ"
+        description: "ONにするとPDF直リンク（本文まで読み込む）にする。OFFなら要旨ページ"
         required: false
-        default: "false"
+        type: boolean
+        default: false
   schedule:
     # 毎日 22:00 UTC = 日本時間 朝7:00
     - cron: "0 22 * * *"
