@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# 実行時に生成されるデータ（プロファイル・フィード・音声）
+data/profile.json
+data/feed.json
+data/audio/*
+!data/audio/.gitkeep
