@@ -12,6 +12,7 @@ import sys
 from . import config
 from .alphaxiv_client import card_to_paper, get_feed, get_japanese_overview_text
 from .arxiv_client import Paper, fetch_recent_papers
+from .export import sync_to_folder
 from .profile import Profile
 from .recommend import rank_papers
 from .script_writer import condense_overview_to_script, write_script
@@ -74,6 +75,10 @@ def generate(
         print(f"[4/4] ({i}/{len(top_papers)}) 音声合成中...", file=sys.stderr)
         audio_path = config.AUDIO_DIR / f"{paper.arxiv_id}.wav"
         synthesize(script, audio_path)
+
+        if config.SYNC_DIR:
+            print(f"      クラウド同期フォルダへコピー中: {config.SYNC_DIR}", file=sys.stderr)
+            sync_to_folder(audio_path, title=paper.title, authors=paper.authors)
 
         feed.insert(
             0,

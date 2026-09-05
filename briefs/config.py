@@ -29,4 +29,8 @@ ALPHAXIV_OVERVIEW_LANG = os.environ.get("ALPHAXIV_OVERVIEW_LANG", "ja")
 ALPHAXIV_OVERVIEW_POLL_TIMEOUT = int(os.environ.get("ALPHAXIV_OVERVIEW_POLL_TIMEOUT", "90"))
 ALPHAXIV_OVERVIEW_POLL_INTERVAL = int(os.environ.get("ALPHAXIV_OVERVIEW_POLL_INTERVAL", "5"))
 
+# 生成したmp3をクラウドストレージの同期フォルダにコピーする場合はパスを指定する
+# 例: export BRIEFS_SYNC_DIR="$HOME/Google Drive/My Drive/briefs"
+SYNC_DIR = os.environ.get("BRIEFS_SYNC_DIR")
+
 AUDIO_DIR.mkdir(parents=True, exist_ok=True)

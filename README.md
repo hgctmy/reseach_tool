@@ -65,7 +65,7 @@ uvicorn briefs.app:app --reload
 （`data/profile.json`）に保存され、`--source arxiv`利用時の次回生成の
 ランキングに反映される。
 
-### スマホから見る
+### スマホから見る（同じWi-Fi内）
 
 同じWi-Fiに繋いだスマホからも見られる。サーバー起動時にホストを開放し、
 
@@ -76,6 +76,28 @@ uvicorn briefs.app:app --host 0.0.0.0 --port 8000
 PCのローカルIPアドレス（`ip a` / `ifconfig` / `ipconfig`で確認、例: `192.168.1.23`）
 を使って、スマホのブラウザで `http://192.168.1.23:8000` を開く。
 UIは幅480px程度のスマホ向けレイアウトになっている。
+
+### 通勤中などオフラインで聴く（クラウドストレージ同期）
+
+外出先で電波が悪い/PCと同じWi-Fiにいない場合は、生成したmp3をGoogle Drive等の
+同期フォルダに置いておき、スマホの公式アプリで事前ダウンロードしておく方法が
+手軽（サーバーを外部公開する必要が無い）。
+
+1. [ffmpeg](https://ffmpeg.org/)をインストールする（`brew install ffmpeg` /
+   `apt install ffmpeg` など。mp3変換とタイトル埋め込みに使用）
+2. 同期フォルダのパスを環境変数で指定する:
+   ```bash
+   export BRIEFS_SYNC_DIR="$HOME/Google Drive/My Drive/briefs"
+   ```
+3. `python -m briefs.pipeline generate` を実行すると、`data/audio/`のwavに加えて
+   タイトル・著者をID3タグに埋め込んだmp3が連番付きファイル名
+   （例: `001_タイトル.mp3`）で同期フォルダにコピーされる
+4. スマホ側でGoogle Driveアプリを開き、該当ファイルを「オフラインで使用可能」に
+   設定しておけば、通勤中など電波が無い場所でも標準の音楽/ファイルアプリで
+   ダウンロード済みファイルを再生できる
+
+新しいBriefsを聴き終えたら生成済みmp3は不要なら手動で削除して問題ない
+（フィード自体はこのプロトタイプでは削除操作を提供していない）。
 
 ## 定期実行
 
