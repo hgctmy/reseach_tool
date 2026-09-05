@@ -65,6 +65,18 @@ uvicorn briefs.app:app --reload
 （`data/profile.json`）に保存され、`--source arxiv`利用時の次回生成の
 ランキングに反映される。
 
+### スマホから見る
+
+同じWi-Fiに繋いだスマホからも見られる。サーバー起動時にホストを開放し、
+
+```bash
+uvicorn briefs.app:app --host 0.0.0.0 --port 8000
+```
+
+PCのローカルIPアドレス（`ip a` / `ifconfig` / `ipconfig`で確認、例: `192.168.1.23`）
+を使って、スマホのブラウザで `http://192.168.1.23:8000` を開く。
+UIは幅480px程度のスマホ向けレイアウトになっている。
+
 ## 定期実行
 
 cronなどで定期的に`python -m briefs.pipeline generate`を実行すれば、
