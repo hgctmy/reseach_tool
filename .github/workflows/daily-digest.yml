@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       sort:
-        description: "フィードのソート指定（例: trending, recommended）"
+        description: "フィードのソート指定 (hot/likes/github/twitter/most-stars/most-twitter-likes)"
         required: false
-        default: "trending"
+        default: "hot"
       limit:
         description: "取得件数"
         required: false
@@ -39,7 +39,7 @@ jobs:
         env:
           ALPHAXIV_API_KEY: ${{ secrets.ALPHAXIV_API_KEY }}
         run: |
-          args=(--sort "${{ github.event.inputs.sort || 'trending' }}" --limit "${{ github.event.inputs.limit || '8' }}")
+          args=(--sort "${{ github.event.inputs.sort || 'hot' }}" --limit "${{ github.event.inputs.limit || '8' }}")
           if [ "${{ github.event.inputs.full_text }}" = "true" ]; then
             args+=(--full-text)
           fi
