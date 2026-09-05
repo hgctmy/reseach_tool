@@ -8,10 +8,9 @@ URLをまとめて貼り付けられる（1件ずつ登録する必要がない�
 生成自体は手動でNotebookLM上から行う。
 
 使い方:
-    python scripts/daily_digest.py
+    ALPHAXIV_API_KEY=axv1_... python scripts/daily_digest.py   # デフォルト: ForYou, 5件
     python scripts/daily_digest.py --sort Hot --limit 8
     python scripts/daily_digest.py --full-text   # 要旨ではなくPDF本文まで読ませたい場合
-    ALPHAXIV_API_KEY=axv1_... python scripts/daily_digest.py --sort ForYou
 
 デフォルトはarxiv.org/abs/（要旨ページ）。デイリーニュース的にサッと聞き流す
 用途なら要旨だけで十分な上、件数を増やしてもNotebookLMの「per-source sampling」
@@ -122,7 +121,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--sort",
-        default="Hot",
+        default="ForYou",
         choices=VALID_SORTS,
         help="フィードのソート指定",
     )
@@ -132,7 +131,7 @@ def main() -> None:
         choices=VALID_INTERVALS,
         help="ランキング集計の対象期間",
     )
-    parser.add_argument("--limit", type=int, default=8, help="取得件数")
+    parser.add_argument("--limit", type=int, default=5, help="取得件数")
     parser.add_argument(
         "--out", type=Path, default=None, help="出力ファイルパス（省略時は data/daily/日付.txt）"
     )

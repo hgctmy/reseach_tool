@@ -15,14 +15,14 @@ NotebookLM）を組み合わせる方が手軽で保守も不要という結論�
 pip install -r requirements.txt
 ```
 
-APIキーは無くても`--sort Hot`（公開フィード）は動く。自分のアカウント
-向けのレコメンド（`--sort Recommended`または`--sort ForYou`。要ログイン状態
-の可能性が高い）を試したい場合は、alphaxiv.orgのSettings > API Keysで発行した
-キーを設定する:
+デフォルトは`--sort ForYou`（自分のアカウント向けのレコメンド）なので、
+alphaxiv.orgのSettings > API Keysで発行したキーを設定する:
 
 ```bash
 export ALPHAXIV_API_KEY="axv1_..."
 ```
+
+APIキーが無い場合は`--sort Hot`など認証不要な値を指定する。
 
 ## 毎日の手順
 
@@ -30,7 +30,7 @@ export ALPHAXIV_API_KEY="axv1_..."
 
 **PCの場合:**
 ```bash
-python scripts/daily_digest.py --sort Hot --limit 8
+python scripts/daily_digest.py   # デフォルト: --sort ForYou --limit 5
 ```
 `data/daily/YYYY-MM-DD.txt` にarXiv URLの一覧が書き出される
 （標準エラー出力にタイトル付きの一覧も表示されるので中身を確認できる）。
