@@ -72,11 +72,11 @@ def fetch_feed(sort: str, page_size: int, interval: str, page_num: int = 1) -> l
     if isinstance(data, list):
         return data
     if isinstance(data, dict):
-        for key in ("cards", "items", "results", "data"):
+        for key in ("papers", "cards", "items", "results", "data"):
             if isinstance(data.get(key), list):
                 return data[key]
         print(
-            "デバッグ: レスポンスがdictだが既知のキー(cards/items/results/data)に"
+            "デバッグ: レスポンスがdictだが既知のキー(papers/cards/items/results/data)に"
             f"一覧が見つからない。トップレベルのキー: {list(data.keys())}",
             file=sys.stderr,
         )
@@ -94,7 +94,17 @@ def _first(d: dict, *keys: str, default=""):
 
 def card_to_entry(card: dict, full_text: bool) -> tuple[str, str] | None:
     paper = card.get("paper", card)
-    arxiv_id = _first(paper, "arxivId", "arxiv_id", "canonicalId", "id")
+    # 注意: "id"はalphaXiv内部のUUIDでarXiv IDではないため候補に入れない
+    arxiv_id = _first(
+        paper,
+        "arxivId",
+        "arxiv_id",
+        "arxiv_identifier",
+        "canonicalId",
+        "canonical_id",
+        "external_id",
+        "externalId",
+    )
     if not arxiv_id:
         return None
     title = _first(paper, "title", default=arxiv_id)
@@ -137,12 +147,20 @@ def main() -> None:
     entries = [entry for card in cards if (entry := card_to_entry(card, args.full_text))]
     if not entries:
         if cards:
+            first = cards[0].get("paper", cards[0])
+            arxiv_like = {k: v for k, v in first.items() if "arxiv" in k.lower()}
             print(
                 f"デバッグ: {len(cards)}件のカードは取得できたが、arxiv_idの抽出に"
-                "全件失敗した。フィールド名の想定が違う可能性がある。1件目の中身:",
+                "全件失敗した。フィールド名の想定が違う可能性がある。",
                 file=sys.stderr,
             )
-            print(json.dumps(cards[0], ensure_ascii=False, indent=2)[:3000], file=sys.stderr)
+            print(f"デバッグ: 1件目のキー一覧: {sorted(first.keys())}", file=sys.stderr)
+            print(f"デバッグ: 'arxiv'を含むキー: {arxiv_like}", file=sys.stderr)
+            print(
+                "デバッグ: 1件目の中身(一部): "
+                + json.dumps(first, ensure_ascii=False, indent=2)[:2000],
+                file=sys.stderr,
+            )
         else:
             print(
                 "論文が取得できませんでした（0件）。--sort/--intervalの値や"
