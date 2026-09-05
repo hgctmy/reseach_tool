@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import os
 import sys
 from pathlib import Path
@@ -68,12 +69,20 @@ def fetch_feed(sort: str, page_size: int, interval: str, page_num: int = 1) -> l
         print(f"alphaXiv APIエラー ({resp.status_code}): {resp.text}", file=sys.stderr)
     resp.raise_for_status()
     data = resp.json()
+    if isinstance(data, list):
+        return data
     if isinstance(data, dict):
         for key in ("cards", "items", "results", "data"):
             if isinstance(data.get(key), list):
                 return data[key]
+        print(
+            "デバッグ: レスポンスがdictだが既知のキー(cards/items/results/data)に"
+            f"一覧が見つからない。トップレベルのキー: {list(data.keys())}",
+            file=sys.stderr,
+        )
+        print(f"デバッグ: レスポンス全体: {json.dumps(data, ensure_ascii=False)[:3000]}", file=sys.stderr)
         return []
-    return data
+    return []
 
 
 def _first(d: dict, *keys: str, default=""):
@@ -127,10 +136,19 @@ def main() -> None:
     cards = fetch_feed(args.sort, args.limit, args.interval)
     entries = [entry for card in cards if (entry := card_to_entry(card, args.full_text))]
     if not entries:
-        print(
-            "論文が取得できませんでした。--sortの値やALPHAXIV_API_KEYを確認してください。",
-            file=sys.stderr,
-        )
+        if cards:
+            print(
+                f"デバッグ: {len(cards)}件のカードは取得できたが、arxiv_idの抽出に"
+                "全件失敗した。フィールド名の想定が違う可能性がある。1件目の中身:",
+                file=sys.stderr,
+            )
+            print(json.dumps(cards[0], ensure_ascii=False, indent=2)[:3000], file=sys.stderr)
+        else:
+            print(
+                "論文が取得できませんでした（0件）。--sort/--intervalの値や"
+                "ALPHAXIV_API_KEYを確認してください。",
+                file=sys.stderr,
+            )
         sys.exit(1)
 
     today = dt.date.today().isoformat()
