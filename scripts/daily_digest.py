@@ -70,7 +70,10 @@ def card_to_entry(card: dict) -> tuple[str, str] | None:
     if not arxiv_id:
         return None
     title = _first(paper, "title", default=arxiv_id)
-    return title, f"https://arxiv.org/abs/{arxiv_id}"
+    # abs（要旨のみのページ）ではなくpdf直リンクにする。NotebookLMはPDF URLを
+    # PDFソースとして扱い本文まで読み込むため、absページ（要旨のみ）より
+    # 内容の濃いAudio Overviewになる。
+    return title, f"https://arxiv.org/pdf/{arxiv_id}"
 
 
 def main() -> None:

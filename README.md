@@ -79,5 +79,10 @@ python scripts/daily_digest.py --sort trending --limit 8
 
 - `--sort`に指定できる正確な値（trending/recommended等）はalphaXiv側で
   公開文書化されていないため、エラーになる場合は値を変えて試す必要がある。
+- 出力するURLは`arxiv.org/abs/`（要旨のみ）ではなく`arxiv.org/pdf/`（PDF直リンク）
+  にしている。NotebookLMはPDFのURLをPDFソースとして扱い本文まで読み込むため。
+  ただし1ノートブックに多くのソースを入れると「per-source sampling」により
+  各ソースから読み込む量が間引かれることがあるため、件数を増やしすぎると
+  逆に内容が薄くなる場合がある（`--limit`で調整する）。
 - alphaXiv非公開APIとの本格連携やVOICEVOXによる自前音声合成パイプラインも
   一度試作したが、セットアップ・保守コストに見合わないため削除した。
