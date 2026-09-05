@@ -20,6 +20,8 @@ class Paper:
     categories: list[str]
     published: str
     pdf_url: str
+    # alphaXiv経由で取得した場合の paper-version ID（overview取得に使う）
+    alphaxiv_version_id: str | None = None
 
     @property
     def abs_url(self) -> str:

@@ -18,4 +18,15 @@ VOICEVOX_SPEAKER_ID = int(os.environ.get("VOICEVOX_SPEAKER_ID", "3"))  # ずん�
 # 台本生成に使うAnthropicモデル
 ANTHROPIC_MODEL = os.environ.get("BRIEFS_ANTHROPIC_MODEL", "claude-sonnet-5")
 
+# alphaXiv公式API（api.alphaxiv.org）。Settings > API Keysで発行したキーを設定する。
+# 参考: https://github.com/petroslamb/alphaxiv-py (公開されているエンドポイント仕様)
+ALPHAXIV_API_KEY = os.environ.get("ALPHAXIV_API_KEY")
+ALPHAXIV_BASE_URL = os.environ.get("ALPHAXIV_BASE_URL", "https://api.alphaxiv.org")
+# フィードのソート指定。有効な値は未公開のため、エラーになる場合は環境変数で調整してください。
+ALPHAXIV_FEED_SORT = os.environ.get("ALPHAXIV_FEED_SORT", "trending")
+ALPHAXIV_OVERVIEW_LANG = os.environ.get("ALPHAXIV_OVERVIEW_LANG", "ja")
+# AI概要の生成待ちをポーリングする際の設定
+ALPHAXIV_OVERVIEW_POLL_TIMEOUT = int(os.environ.get("ALPHAXIV_OVERVIEW_POLL_TIMEOUT", "90"))
+ALPHAXIV_OVERVIEW_POLL_INTERVAL = int(os.environ.get("ALPHAXIV_OVERVIEW_POLL_INTERVAL", "5"))
+
 AUDIO_DIR.mkdir(parents=True, exist_ok=True)

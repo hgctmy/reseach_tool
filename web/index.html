@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>日本語版Briefs</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f8;
+    --card-bg: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #2563eb;
+    --like: #16a34a;
+    --skip: #9ca3af;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #f2f2f2;
+      --muted: #a0a0a0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  main {
+    width: 100%;
+    max-width: 480px;
+    padding: 24px 16px 96px;
+  }
+  h1 {
+    font-size: 18px;
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  .card h2 {
+    font-size: 17px;
+    line-height: 1.5;
+    margin: 0 0 8px;
+  }
+  .card .authors {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .card .script {
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    max-height: 40vh;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+  audio { width: 100%; margin-bottom: 16px; }
+  .actions {
+    display: flex;
+    gap: 12px;
+  }
+  .actions button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .btn-skip { background: var(--skip); color: #fff; }
+  .btn-like { background: var(--like); color: #fff; }
+  .abs-link {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .empty, .progress {
+    text-align: center;
+    color: var(--muted);
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>日本語版 Briefs</h1>
+  <div id="content"></div>
+</main>
+<script>
+let feed = [];
+let index = 0;
+
+async function loadFeed() {
+  const res = await fetch("/api/feed");
+  feed = await res.json();
+  index = 0;
+  render();
+}
+
+function render() {
+  const content = document.getElementById("content");
+  if (feed.length === 0) {
+    content.innerHTML = `<p class="empty">まだBriefsがありません。<br>python -m briefs.pipeline generate を実行してください。</p>`;
+    return;
+  }
+  if (index >= feed.length) {
+    content.innerHTML = `<p class="empty">フィードの終わりです。おつかれさまでした。</p>`;
+    return;
+  }
+  const item = feed[index];
+  content.innerHTML = `
+    <p class="progress">${index + 1} / ${feed.length}</p>
+    <div class="card">
+      <h2>${escapeHtml(item.title)}</h2>
+      <div class="authors">${escapeHtml((item.authors || []).join(", "))}</div>
+      <audio id="player" src="${item.audio_url}" controls autoplay></audio>
+      <div class="script">${escapeHtml(item.script)}</div>
+      <div class="actions">
+        <button class="btn-skip" onclick="feedback('skip')">スキップ</button>
+        <button class="btn-like" onclick="feedback('like')">いいね</button>
+      </div>
+      <a class="abs-link" href="${item.abs_url}" target="_blank" rel="noopener">元論文を見る (arXiv)</a>
+    </div>
+  `;
+  const player = document.getElementById("player");
+  player.addEventListener("ended", next);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str || "";
+  return div.innerHTML;
+}
+
+async function feedback(action) {
+  const item = feed[index];
+  try {
+    await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ arxiv_id: item.arxiv_id, action }),
+    });
+  } catch (e) {
+    console.error(e);
+  }
+  next();
+}
+
+function next() {
+  index += 1;
+  render();
+}
+
+loadFeed();
+</script>
+</body>
+</html>
