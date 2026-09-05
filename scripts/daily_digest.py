@@ -10,7 +10,14 @@ URLをまとめて貼り付けられる（1件ずつ登録する必要がない�
 使い方:
     python scripts/daily_digest.py
     python scripts/daily_digest.py --sort trending --limit 8
+    python scripts/daily_digest.py --full-text   # 要旨ではなくPDF本文まで読ませたい場合
     ALPHAXIV_API_KEY=axv1_... python scripts/daily_digest.py --sort recommended
+
+デフォルトはarxiv.org/abs/（要旨ページ）。デイリーニュース的にサッと聞き流す
+用途なら要旨だけで十分な上、件数を増やしてもNotebookLMの「per-source sampling」
+（ソースが多いと各ソースから読む量が間引かれる）の影響を受けにくい。
+1本1本を深掘りしたい場合は`--full-text`でPDF直リンク（本文まで読み込まれる）
+に切り替えられる。
 
 sortに有効な値（trending/recommended等の正確な名前）は非公開のため、
 エラーになる場合は値を変えて試してください。ALPHAXIV_API_KEYを設定すると、
@@ -64,16 +71,18 @@ def _first(d: dict, *keys: str, default=""):
     return default
 
 
-def card_to_entry(card: dict) -> tuple[str, str] | None:
+def card_to_entry(card: dict, full_text: bool) -> tuple[str, str] | None:
     paper = card.get("paper", card)
     arxiv_id = _first(paper, "arxivId", "arxiv_id", "canonicalId", "id")
     if not arxiv_id:
         return None
     title = _first(paper, "title", default=arxiv_id)
-    # abs（要旨のみのページ）ではなくpdf直リンクにする。NotebookLMはPDF URLを
-    # PDFソースとして扱い本文まで読み込むため、absページ（要旨のみ）より
-    # 内容の濃いAudio Overviewになる。
-    return title, f"https://arxiv.org/pdf/{arxiv_id}"
+    # full_text=Trueならpdf直リンク（NotebookLMがPDFソースとして本文まで読む）、
+    # Falseならabs（要旨のみのページ）。デイリーニュース用途では要旨で十分な
+    # ことが多く、件数を増やしてもNotebookLMのper-source samplingの影響を
+    # 受けにくい。
+    path = "pdf" if full_text else "abs"
+    return title, f"https://arxiv.org/{path}/{arxiv_id}"
 
 
 def main() -> None:
@@ -87,10 +96,15 @@ def main() -> None:
     parser.add_argument(
         "--out", type=Path, default=None, help="出力ファイルパス（省略時は data/daily/日付.txt）"
     )
+    parser.add_argument(
+        "--full-text",
+        action="store_true",
+        help="要旨ページ(abs)ではなくPDF直リンクにする（NotebookLMが本文まで読む）",
+    )
     args = parser.parse_args()
 
     cards = fetch_feed(args.sort, args.limit)
-    entries = [entry for card in cards if (entry := card_to_entry(card))]
+    entries = [entry for card in cards if (entry := card_to_entry(card, args.full_text))]
     if not entries:
         print(
             "論文が取得できませんでした。--sortの値やALPHAXIV_API_KEYを確認してください。",
