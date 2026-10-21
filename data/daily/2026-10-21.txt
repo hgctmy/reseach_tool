@@ -1,0 +1,5 @@
+https://arxiv.org/abs/2610.23839v1
+https://arxiv.org/abs/2608.17492v2
+https://arxiv.org/abs/2610.03039v1
+https://arxiv.org/abs/2610.koi-heterogeneous-llm-inference-planningv1
+https://arxiv.org/abs/2609.34147v1
